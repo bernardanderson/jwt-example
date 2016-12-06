@@ -4,6 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.IdentityModel.Tokens.Jwt;
+using Newtonsoft.Json.Linq;
+using System.Text.RegularExpressions;
 
 namespace jwtStormpath.Controllers
 {
@@ -12,10 +17,32 @@ namespace jwtStormpath.Controllers
     {
         // GET api/values
         [HttpGet]
-        [Authorize]
+        //[Authorize]
         public IEnumerable<string> Get()
         {
-            return new string[] { "value1", "value2" };
+            string authorization = Request.Headers["Authorization"];
+
+            // If you were magically able to get Authorized without proper jwt
+            if (authorization == null)
+            {
+                return new string[] { "No jwt detected" };
+            }
+
+            // Again, if you were magically able to get Authorized without proper jwt
+            if (authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                string token = authorization.Substring("Bearer ".Length).Trim();
+
+                JwtSecurityTokenHandler testJwt = new JwtSecurityTokenHandler();
+                var decodedToken = testJwt.ReadToken(token) as JwtSecurityToken;
+
+                var userName = decodedToken.Claims.First(claim => claim.Type == "sub").Value;
+
+                return new string[] { userName };
+            }
+
+            // Again, again, if you were magically able to get Authorized without proper jwt
+            return new string[] { "No jwt detected" };
         }
 
         // GET api/values/5
