@@ -9,14 +9,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using jwtStormpath.Controllers;
+using Microsoft.Extensions.Options;
 
 namespace jwtStormpath
 {
     public class Startup
     {
-        // secretKey contains a secret passphrase only your server knows
-        private const string secretKey = "mysupersecret_secretkey!123";
-        private SymmetricSecurityKey signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secretKey));
 
         public Startup(IHostingEnvironment env)
         {
@@ -37,9 +36,14 @@ namespace jwtStormpath
             services.AddMvc();
         }
 
+        // secretKey contains a secret passphrase only your server knows
+        private static readonly string secretKey = "mysupersecret_secretkey!123";
+        
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+            var signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secretKey));
+
             var tokenValidationParameters = new TokenValidationParameters
             {
                 // The signing key must match!
@@ -70,6 +74,18 @@ namespace jwtStormpath
 
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
+
+            app.UseStaticFiles();
+
+            // Add JWT generation endpoint:
+            var options = new TokenProviderOptions
+            {
+                Audience = "ExampleAudience",
+                Issuer = "ExampleIssuer",
+                SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256),
+            };
+
+            app.UseMiddleware<TokenProviderMiddleware>(Options.Create(options));
 
             app.UseMvc();
         }
