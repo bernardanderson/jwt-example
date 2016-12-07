@@ -85,6 +85,11 @@ namespace jwtStormpath
                 SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256),
             };
 
+            app.UseCors(builder =>
+                //builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()  // This works but opens the whole thing up!
+                builder.AllowAnyOrigin().WithMethods("GET", "OPTIONS").WithHeaders("Authorization")
+            );
+
             app.UseMiddleware<TokenProviderMiddleware>(Options.Create(options));
 
             app.UseMvc();

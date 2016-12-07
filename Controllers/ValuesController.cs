@@ -9,6 +9,7 @@ using System.Net.Http.Headers;
 using System.IdentityModel.Tokens.Jwt;
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Cors;
 
 namespace jwtStormpath.Controllers
 {
@@ -17,7 +18,7 @@ namespace jwtStormpath.Controllers
     {
         // GET api/values
         [HttpGet]
-        //[Authorize]
+        [Authorize]
         public IEnumerable<string> Get()
         {
             string authorization = Request.Headers["Authorization"];
@@ -67,6 +68,11 @@ namespace jwtStormpath.Controllers
         // DELETE api/values/5
         [HttpDelete("{id}")]
         public void Delete(int id)
+        {
+        }
+
+        [HttpOptions]
+        public void Options()
         {
         }
     }
